@@ -1,0 +1,9 @@
+*.asm
+*.lnk
+*.lst
+*.map
+*.mem
+*.rel
+*.sym
+*.exe
+*.INI
