@@ -58,9 +58,9 @@ __sbit I2C_RecvACK()
 //**************************************
 
 //**************************************
-void I2C_SendByte(uint8_t dat)
+void I2C_SendByte(unsigned char dat)
 {
-    uint8_t i;
+    unsigned char i;
     for (i=0; i<8; i++)         
     {
         if(dat & 0x80)
@@ -79,10 +79,10 @@ void I2C_SendByte(uint8_t dat)
 //**************************************
 
 //**************************************
-uint8_t I2C_RecvByte()
+unsigned char I2C_RecvByte()
 {
-    uint8_t i;
-    uint8_t dat = 0;
+    unsigned char i;
+    unsigned char dat = 0;
     SDA = 1;                    
     for (i=0; i<8; i++)         
     {
@@ -99,7 +99,7 @@ uint8_t I2C_RecvByte()
 //**************************************
 
 //**************************************
-void Single_WriteI2C(uint8_t SlaveAddress, uint8_t REG_Address,uint8_t REG_data)
+void Single_WriteI2C(unsigned char SlaveAddress, unsigned char REG_Address,unsigned char REG_data)
 {
     I2C_Start();                  
     I2C_SendByte(SlaveAddress);   
@@ -110,7 +110,7 @@ void Single_WriteI2C(uint8_t SlaveAddress, uint8_t REG_Address,uint8_t REG_data)
 //**************************************
 
 //**************************************
-uint8_t Single_ReadI2C(uint8_t SlaveAddress, uint8_t REG_Address)
+unsigned char Single_ReadI2C(unsigned char SlaveAddress, unsigned char REG_Address)
 {
     char REG_data;
     I2C_Start();                   

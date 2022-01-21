@@ -1,7 +1,7 @@
 #ifndef MAX7219_H
 #define MAX7219_H
 
-#include <8051.h>
+#include <8052.h>
 
 #define UI unsigned int
 #define UC unsigned char
@@ -37,12 +37,12 @@ UC SSD_CODE[] = {
     0x47    // 0b01000111: F
 };
 
-void BitExtract(UC bits);
+void BitExtract(UC);
 void SerialDIN(UC, UC);
 void MAT_SSD_INIT();
 void MAT_SSD_Show(UC*, UC*, UC*);
 void MAT_SSDnum_Show(UC*, UC*, long);
-void SSD_Number(long);
+// void SSD_Number(long);
 // void SSD_Show(UC*);
 // void MAT_Show(long);
 
@@ -58,10 +58,10 @@ void BitExtract(UC bits)
     }
 }
 
-void SerialDIN(UC address, UC dat)
+void SerialDIN(UC address_7219, UC dat_7219)
 {
-    BitExtract(address);
-    BitExtract(dat);
+    BitExtract(address_7219);
+    BitExtract(dat_7219);
 }
 
 void MAT_SSD_Show(UC* mat1, UC* mat2, UC* num)
@@ -83,29 +83,29 @@ void MAT_SSDnum_Show(UC* mat1, UC* mat2, long num)
     for (i = 0 ; i < 8; i++) {
         LOAD = 0;
         SerialDIN(i + 1, SSD_CODE[n % 10]);
-        SerialDIN(i + 1, mat1[i]);
         SerialDIN(i + 1, mat2[i]);
+        SerialDIN(i + 1, mat1[i]);
         n /= 10;
         LOAD = 1;
     }
 }
 
-void SSD_Number(long num)
-{
-    UI i, n;
+// void SSD_Number(long num)
+// {
+//     UI i, n;
 
-    n = num > 0 ? num : num * -1;
+//     n = num > 0 ? num : num * -1;
 
-    for (i = 1; i <= 8 && n; i++) {
-        SerialDIN(i, SSD_CODE[n % 10]);
-        n /= 10;
-    }
-    if (num < 10 && i <= 8) {
-        SerialDIN(i++, 0x01);
-    }
-    for (i++; i <= 8; i++)
-        SerialDIN(i, 0);
-}
+//     for (i = 1; i <= 8 && n; i++) {
+//         SerialDIN(i, SSD_CODE[n % 10]);
+//         n /= 10;
+//     }
+//     if (num < 10 && i <= 8) {
+//         SerialDIN(i++, 0x01);
+//     }
+//     for (i++; i <= 8; i++)
+//         SerialDIN(i, 0);
+// }
 
 // void SSD_Show(UC* num)
 // {
