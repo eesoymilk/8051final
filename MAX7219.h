@@ -39,12 +39,12 @@ UC SSD_CODE[] = {
 
 void BitExtract(UC);
 void SerialDIN(UC, UC);
+void MAT_SSDpass_Show(UC, int);
+void MAT_SSDcur_Show(UC*, UC*, int);
+void MAT_SSDgame_Show(UC*, UC*, int);
+void MAT_SSDbest_Show(UC*, UC*, int);
+void MAT_SSD_CLEAR();
 void MAT_SSD_INIT();
-void MAT_SSD_Show(UC*, UC*, UC*);
-void MAT_SSDnum_Show(UC*, UC*, long);
-// void SSD_Number(long);
-// void SSD_Show(UC*);
-// void MAT_Show(long);
 
 void BitExtract(UC bits)
 {
@@ -64,60 +64,200 @@ void SerialDIN(UC address_7219, UC dat_7219)
     BitExtract(dat_7219);
 }
 
-void MAT_SSD_Show(UC* mat1, UC* mat2, UC* num)
+void MAT_SSDpass_Show(UC state, int num)
 {
-    UI i;
-    for (i = 0 ; i < 8; i++) {
+    UI i, j, n;
+
+    LOAD = 0;
+    SerialDIN(8, 0x67);// 0b01100111: P
+    SerialDIN(8, 0);
+    SerialDIN(8, 0);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(7, SSD_CODE[0xA]);
+    SerialDIN(7, 0);
+    SerialDIN(7, 0);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(6, 0x5b);     // 0b01011011: S
+    SerialDIN(6, 0);
+    SerialDIN(6, 0);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(5, 0x5b);     // 0b01011011: S
+    SerialDIN(5, 0);
+    SerialDIN(5, 0);
+    LOAD = 1;
+
+    for (i = 0; i < 4 - state; i++) {
         LOAD = 0;
-        SerialDIN(i + 1, SSD_CODE[num[i]]);
-        SerialDIN(i + 1, mat1[i]);
-        SerialDIN(i + 1, mat2[i]);
+        SerialDIN(i + 1, 0);
+        SerialDIN(i + 1, 0);
+        SerialDIN(i + 1, 0);
+        LOAD = 1;
+    }
+
+    LOAD = 0;
+    SerialDIN(4 - state, 0);
+    SerialDIN(4 - state, 0);
+    SerialDIN(4 - state, 0);
+    LOAD = 1;
+
+    for (i = 0; i < state; i++) {
+        n = 0;
+        for (j = 12 - i * 4; j < 16 - i * 4; j++) {
+            if (num & 1 << j) {
+                switch (j % 4)
+                {
+                case 0: n += 1; break;
+                case 1: n += 2; break;
+                case 2: n += 4; break;
+                case 3: n += 8;
+                }
+            }
+        }
+        LOAD = 0;
+        SerialDIN(4 - i, SSD_CODE[n]);
+        SerialDIN(4 - i, 0);
+        SerialDIN(4 - i, 0);
         LOAD = 1;
     }
 }
 
-void MAT_SSDnum_Show(UC* mat1, UC* mat2, long num)
+void MAT_SSDgame_Show(UC* mat1, UC* mat2, int t)
 {
-    UI i, n;
-    n = num > 0 ? num : -num;
-    for (i = 0 ; i < 8; i++) {
+    UC i;
+    UI min = t / 60, sec = t % 60;
+    for (i = 0 ; i < 2; i++) {
         LOAD = 0;
-        SerialDIN(i + 1, SSD_CODE[n % 10]);
+        SerialDIN(i + 1, SSD_CODE[sec % 10]);
         SerialDIN(i + 1, mat2[i]);
         SerialDIN(i + 1, mat1[i]);
-        n /= 10;
+        sec /= 10;
+        LOAD = 1;
+    }
+    LOAD = 0;
+    SerialDIN(3, 0x01);
+    SerialDIN(3, mat2[2]);
+    SerialDIN(3, mat1[2]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(4, SSD_CODE[min]);
+    SerialDIN(4, mat2[3]);
+    SerialDIN(4, mat1[3]);
+    LOAD = 1;
+
+    for (i = 4; i < 8; i++) {
+        LOAD = 0;
+        SerialDIN(i + 1, 0);
+        SerialDIN(i + 1, mat2[i]);
+        SerialDIN(i + 1, mat1[i]);
         LOAD = 1;
     }
 }
 
-// void SSD_Number(long num)
-// {
-//     UI i, n;
+void MAT_SSDcur_Show(UC* mat1, UC* mat2, int t)
+{
+    UC i;
+    UI min = t / 60, sec = t % 60;
+    for (i = 0 ; i < 2; i++) {
+        LOAD = 0;
+        SerialDIN(i + 1, SSD_CODE[sec % 10]);
+        SerialDIN(i + 1, mat2[i]);
+        SerialDIN(i + 1, mat1[i]);
+        sec /= 10;
+        LOAD = 1;
+    }
+    LOAD = 0;
+    SerialDIN(3, 0x01);
+    SerialDIN(3, mat2[2]);
+    SerialDIN(3, mat1[2]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(4, SSD_CODE[min]);
+    SerialDIN(4, mat2[3]);
+    SerialDIN(4, mat1[3]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(8, SSD_CODE[0xC]);
+    SerialDIN(8, mat2[7]);
+    SerialDIN(8, mat1[7]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(7, 0x3e);     // 0b00111110: U
+    SerialDIN(7, mat2[6]);
+    SerialDIN(7, mat1[6]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(6, 0x05);     // 0b00000101: r
+    SerialDIN(6, mat2[5]);
+    SerialDIN(6, mat1[5]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(5, 0);
+    SerialDIN(5, mat2[4]);
+    SerialDIN(5, mat1[4]);
+    LOAD = 1;
+}
 
-//     n = num > 0 ? num : num * -1;
+void MAT_SSDbest_Show(UC* mat1, UC* mat2, int t)
+{
+    UC i;
+    UI min = t / 60, sec = t % 60;
+    for (i = 0 ; i < 2; i++) {
+        LOAD = 0;
+        SerialDIN(i + 1, SSD_CODE[sec % 10]);
+        SerialDIN(i + 1, mat2[i]);
+        SerialDIN(i + 1, mat1[i]);
+        sec /= 10;
+        LOAD = 1;
+    }
+    LOAD = 0;
+    SerialDIN(3, 0x01);
+    SerialDIN(3, mat2[2]);
+    SerialDIN(3, mat1[2]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(4, SSD_CODE[min]);
+    SerialDIN(4, mat2[3]);
+    SerialDIN(4, mat1[3]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(8, SSD_CODE[0xB]);
+    SerialDIN(8, mat2[7]);
+    SerialDIN(8, mat1[7]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(7, SSD_CODE[0xE]);
+    SerialDIN(7, mat2[6]);
+    SerialDIN(7, mat1[6]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(6, 0x5b);     // 0b01011011: S
+    SerialDIN(6, mat2[5]);
+    SerialDIN(6, mat1[5]);
+    LOAD = 1;
+    LOAD = 0;
+    SerialDIN(5, 0x11);     // 0b00010001: t
+    SerialDIN(5, mat2[4]);
+    SerialDIN(5, mat1[4]);
+    LOAD = 1;
+}
 
-//     for (i = 1; i <= 8 && n; i++) {
-//         SerialDIN(i, SSD_CODE[n % 10]);
-//         n /= 10;
-//     }
-//     if (num < 10 && i <= 8) {
-//         SerialDIN(i++, 0x01);
-//     }
-//     for (i++; i <= 8; i++)
-//         SerialDIN(i, 0);
-// }
-
-// void SSD_Show(UC* num)
-// {
-//     UI i;
-
-//     for (i = 1; i <= 8; i++)
-//         SerialDIN(i, SSD_CODE[num[8 - i]]);
-// }
+void MAT_SSD_CLEAR()
+{
+    UC i, j;
+    for (i = 1; i <= 8; i++) {
+        LOAD = 0;
+        for (j = 0; j < 3; j++)
+            SerialDIN(i, 0x00);
+        LOAD = 1;
+    }
+}
 
 void MAT_SSD_INIT()
 {
-    UC i, j;
+    UC i;
     LOAD = 0;
     for (i = 0; i < MAX7219_NUM; i++) SerialDIN(SHUTDOWN,     0x01);   // Normal mode (0xX1)
     LOAD = 1;
@@ -134,21 +274,7 @@ void MAT_SSD_INIT()
     for (i = 0; i < MAX7219_NUM; i++) SerialDIN(INTENSITY,    0x0E);  // brightness
     LOAD = 1;
 
-    for (i = 1; i <= 8; i++) {
-        LOAD = 0;
-        for (j = 0; j < 3; j++)
-            SerialDIN(i, 0x00);
-        LOAD = 1;
-    }
+    MAT_SSD_CLEAR();
 }
-
-// void MAT_Show(UC* mat1, UC* mat2)
-// {
-//     UC i;
-
-//     for (i = 0; i < 8; i++)
-//         SerialDIN(i + 1, mat1[i], mat2[i]);
-// }
-
 
 #endif
